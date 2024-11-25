@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class User {
@@ -9,24 +10,19 @@ public class User {
     private List<User> friendRequests;
     private List<User> friends;
 
+    private List<Post> posts;
+
     public User(String name) {
         this.name = name;
         this.id = nextId++;
 
         this.friends = new ArrayList<>();
         this.friendRequests = new ArrayList<>();
+        this.posts = new LinkedList<>();
     }
-
-    public void removeFriendFromFriendList(User user){
-        friends.remove(user); //not applied to graph
-    }
-
-    public void removeFriendFromFriendRequestList(User user){
-        friendRequests.remove(user); //not need to apply to graph
-    }
-
 
     //------------------
+
     public int getId() {
         return id;
     }
@@ -43,4 +39,7 @@ public class User {
         return friendRequests;
     }
 
+    public List<Post> getPosts() {
+        return posts;
+    }
 }
