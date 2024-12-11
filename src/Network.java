@@ -1,15 +1,18 @@
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.List;
+import java.util.*;
 
-public class Network {
+public class Network{
 
     private Hashtable<Integer,String> users;
     private Hashtable<Integer, List<Integer>> friendships;
 
+    private PriorityQueue<Post> newFeed;
+    private PriorityQueue<Activity> activities;
+
     public Network() {
         this.users = new Hashtable<>();
         this.friendships = new Hashtable<>();
+        this.newFeed = new PriorityQueue<>();
+        this.activities = new PriorityQueue<>();
     }
 
     //Exceptions handled, add user if it is not existing.
@@ -17,6 +20,8 @@ public class Network {
         if (!users.containsKey(user.getId())){
             users.put(user.getId(),user.getName()); //add it general user space.
             friendships.put(user.getId(), new ArrayList<>()); //add it relational part.
+
+            activities.add(new Activity(user.getId(), "User created."));
         } else {
             System.out.println("User is already exist!");
         }
@@ -34,8 +39,9 @@ public class Network {
         }
         friendships.remove(user.getId()); //remove the user from relation part
         users.remove(user.getId()); //remove the user from general users
-        System.out.printf("User %s and relations are successfully removed!%n",user.getName());
 
+        activities.add(new Activity(user.getId(), "User deleted."));
+        System.out.printf("User %s and relations are successfully removed!%n",user.getName());
     }
 
     //Exceptions handled, send req. to user if it is existing.
@@ -49,6 +55,7 @@ public class Network {
 
             if (!receiverUser.getFriendRequests().contains(senderUser)){ //check sent a req before.
                 receiverUser.getFriendRequests().add(senderUser); //when you send a request, other user can see you on his/her list
+                activities.add(new Activity(senderUser.getId(), String.format("Sent friend req. to %s.",receiverUser.getName())));
                 System.out.println("Friend request sent.");
             } else{
                 System.out.printf("You {%s} have already sent request to {%s}.%n",senderUser.getName(),receiverUser.getName());
@@ -70,6 +77,7 @@ public class Network {
             friendships.putIfAbsent(other.getId(), new ArrayList<>()); //add relations between these two users.
             friendships.get(user.getId()).add(other.getId());
             friendships.get(other.getId()).add(user.getId());
+            activities.add(new Activity(user.getId(), String.format("%s accepted the friend req.",other.getName())));
 
         } else{
             System.out.printf("User {%s} cannot find in req list.%n",other.getName());
@@ -88,10 +96,12 @@ public class Network {
 
         user.getFriends().remove(other); // delete oppositely from friend lists.
         other.getFriends().remove(user);
+        activities.add(new Activity(user.getId(), String.format("Removed %s from his/her friends.",other.getName())));
     }
 
     public void removeFriendFromFriendRequestList(User user, User other){ //deny the request
         user.getFriendRequests().remove(other); //not need to apply to graph because it did not assign a relation.
+        activities.add(new Activity(user.getId(), String.format("Deny the req. from %s.",other.getName())));
     }
 
     public List<Integer> findMutualFriends(User user, User other){
@@ -112,9 +122,27 @@ public class Network {
         } else {
             System.out.println("User cannot find.");
         }
+        activities.add(new Activity(user.getId(), String.format("Search for mutual friend with %s.", other.getName())));
 
         return mutualFriends;
     }
+
+    public void sharePost(User user, String content){
+        Post post = new Post(user.getId(),content);
+        user.getPosts().add(post);
+
+        newFeed.add(post);
+        activities.add(new Activity(user.getId(), "User shared a post."));
+    }
+
+//    public String searchUser(int userId){
+//        return users.get(binarySearch(userId));
+//    }
+//
+//    public int searchUser(String userName){
+//        return binarySearch(userName);
+//    }
+
 
     public void printFriendships() {
         for (int user : friendships.keySet()) {
@@ -125,6 +153,68 @@ public class Network {
     //for testing
 //    public Hashtable<Integer, List<Integer>> getFriendships() {
 //        return friendships;
+//    }
+
+
+    public void getNewFeed() {
+        for (Post post: newFeed){
+            System.out.printf("%d - %s %s%n",post.getUserId(),post.getContent(),post.getDateAsString());
+        }
+    }
+
+    public void getActivities(){
+        for (Activity act: activities){
+            System.out.printf("%d - %s - %s%n",act.getUserId(),act.getDescription(),act.getDateAsString());
+        }
+    }
+
+//    public int binarySearch(int userId) {
+//        List<Integer> list = new ArrayList<>(users.keySet());
+//
+//        int left = 0;
+//        int right = list.size() - 1;
+//
+//        while (left <= right) {
+//            int mid = left + (right - left) / 2;
+//            int midValue = list.get(mid);
+//
+//            if (midValue == userId) {
+//                return mid;
+//            } else if (midValue < userId) {
+//                left = mid + 1;
+//            } else {
+//                right = mid - 1;
+//            }
+//        }
+//        return -1;
+//    }
+
+//    public int binarySearch(String userName) {
+//        int userId = -1;
+//        for (int id: users.keySet()){
+//            if (Objects.equals(users.get(id), userName)){
+//                userId = id;
+//            }
+//        }
+//
+//        List<Integer> list = new ArrayList<>(users.keySet());
+//
+//        int left = 0;
+//        int right = list.size() - 1;
+//
+//        while (left <= right) {
+//            int mid = left + (right - left) / 2;
+//            int midValue = list.get(mid);
+//
+//            if (midValue == userId) {
+//                return mid;
+//            } else if (midValue < userId) {
+//                left = mid + 1;
+//            } else {
+//                right = mid - 1;
+//            }
+//        }
+//        return -1;
 //    }
 
 }

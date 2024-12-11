@@ -21,6 +21,12 @@ public class User {
         this.posts = new LinkedList<>();
     }
 
+    public void getPostAsString(){
+        for (Post post: posts){
+            System.out.printf("%d - %s - %s%n",post.getUserId(),post.getContent(),post.getDateAsString());
+        }
+    }
+
     //------------------
 
     public int getId() {

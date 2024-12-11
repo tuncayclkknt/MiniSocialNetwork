@@ -73,6 +73,23 @@ public class Main {
         System.out.println(post.getDate());
         System.out.println(post.getDateAsString());
 
+        System.out.println("--------------------------------------------");
+
+        network.sharePost(u1,"Hello");
+        network.sharePost(u2,"Hi!");
+        network.sharePost(u1,"world");
+        network.sharePost(u5,"car");
+
+        u1.getPostAsString();
+        u2.getPostAsString();
+        System.out.println("---------------");
+        network.getNewFeed();
+        System.out.println("---------------");
+        network.getActivities();
+
+//        System.out.println(network.searchUser(1));
+//        System.out.println(network.searchUser("Zeynep"));
+
 
     }
 }

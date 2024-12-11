@@ -2,7 +2,7 @@ import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-public class Post {
+public class Post implements Comparable<Post>{
 
     private int userId;
     private String content;
@@ -31,5 +31,10 @@ public class Post {
     public String getDateAsString(){
         return LocalDateTime.now().getHour() + "." + LocalDateTime.now().getMinute() + " " +
                 LocalDateTime.now().getDayOfMonth() + "/" + LocalDateTime.now().getMonthValue() + "/" + LocalDateTime.now().getYear();
+    }
+
+    @Override
+    public int compareTo(Post o) {
+        return o.date.compareTo(this.date);
     }
 }
