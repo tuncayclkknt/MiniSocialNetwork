@@ -309,12 +309,30 @@ public class Main {
             else if (mainCommand.startsWith("myFriReqs")){
                 System.out.println(network.getUsers().get(loggedInUser).getFriendRequests());
             }
-            else if(mainCommand.equals("exit")){
-                System.out.println("exit");
+            else if (mainCommand.startsWith("help")){
+                System.out.println("\twhoami: print logged in user information.\n" +
+                        "\tswitch <User ID>: change logged in user.\n\n" +
+                        "\tuseradd <Name>: add new user on the app.\n" +
+                        "\tuserremove <User ID>: remove user on the app.\n\n" +
+                        "\tsendFriReq <User ID>: send a friend request.\n" +
+                        "\tactFriReq <User ID>: accept friend request.\n" +
+                        "\tremoveFri <User ID>: remove from friend list.\n" +
+                        "\tdenyFriReq <User ID>: deny friend request.\n" +
+                        "\tfindMutuals <User ID>: find mutual friends.\n" +
+                        "\tsuggestFri: see suggested friends.\n\n" +
+                        "\tsearchById <User ID>: search any user using ids.\n" +
+                        "\tsearchByName <Name>: search any user using names.\n\n" +
+                        "\tpost <String>: share a post.\n" +
+                        "\tshowAllPost: show news feed.\n" +
+                        "\tshowMyPost: show post that I shared.\n\n" +
+                        "\tmyActs: show my activities.\n" +
+                        "\tmyFriends: show my friends.\n" +
+                        "\tmyFriReqs: show my friend requests.");
+            }
+            else if (mainCommand.equals("exit")){
+                System.out.println("Exiting...");
                 break;
             }
         }
-
-
     }
 }
