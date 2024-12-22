@@ -2,10 +2,9 @@ import java.util.*;
 
 public class Network{
 
-    private Hashtable<Integer,String> users;
+    private Hashtable<Integer,User> users;
 
     private Hashtable<Integer, List<Integer>> friendships;
-
     private PriorityQueue<Post> newFeed;
 
     private PriorityQueue<Activity> activities;
@@ -21,50 +20,62 @@ public class Network{
     //Exceptions handled, add user if it is not existing.
     public void addUser(User user){
         if (!users.containsKey(user.getId())){
-            users.put(user.getId(),user.getName()); //add it general user space.
+            users.put(user.getId(),user); //add it general user space.
             friendships.put(user.getId(), new ArrayList<>()); //add it relational part.
 
             activities.add(new Activity(user.getId(), "User created."));
         } else {
-            System.out.println("User is already exist!");
+            System.out.println("\tUser is already exist!");
         }
     }
 
     //Exceptions handled, remove user if it is existing.
     public void removeUser(User user){
         if (!friendships.containsKey(user.getId())) { //check if it has relations.
-            System.out.printf("User %s cannot find.%n",user.getName());
+            System.out.printf("\tUser %s cannot find.%n",user.getName());
             return;
+        }
+
+        for (User friends: user.getFriends()){  //  TEST
+            friends.getFriends().remove(user);
         }
 
         for (Integer friend : friendships.get(user.getId())) {
             friendships.get(friend).remove(Integer.valueOf(user.getId())); //first remove all relations BY-ONE-BY(Zehra)
         }
+
         friendships.remove(user.getId()); //remove the user from relation part
         users.remove(user.getId()); //remove the user from general users
 
         activities.add(new Activity(user.getId(), "User deleted."));
-        System.out.printf("User %s and relations are successfully removed!%n",user.getName());
+        System.out.printf("\tUser %s and relations are successfully removed!%n",user.getName());
     }
 
     //Exceptions handled, send req. to user if it is existing.
     public void sendFriendRequest(User senderUser, User receiverUser){
-        if (users.containsKey(senderUser.getId()) && users.containsKey(receiverUser.getId())){//if the user is existing.
 
+        if (senderUser == receiverUser) {
+            System.out.println("\tYou cannot send request to yourself.");
+            return;
+        }
+        if (users.containsKey(senderUser.getId()) && users.containsKey(receiverUser.getId())){//if the user is existing.
             if (senderUser.getFriends().contains(receiverUser)){ //check if the user is my friend.
-                System.out.printf("User %s has already your friend.%n",receiverUser.getName());
+                System.out.printf("\tUser %s has already your friend.%n",receiverUser.getName());
                 return;
             }
 
             if (!receiverUser.getFriendRequests().contains(senderUser)){ //check sent a req before.
                 receiverUser.getFriendRequests().add(senderUser); //when you send a request, other user can see you on his/her list
-                activities.add(new Activity(senderUser.getId(), String.format("Sent friend req. to %s.",receiverUser.getName())));
-                System.out.println("Friend request sent.");
+
+                activities.add(new Activity(senderUser.getId(), String.format("You sent friend request to %s.",receiverUser.getName())));
+                activities.add(new Activity(receiverUser.getId(), String.format("You got a friend request from %s.", senderUser.getName())));
+
+                System.out.println("\tFriend request sent.");
             } else{
-                System.out.printf("You {%s} have already sent request to {%s}.%n",senderUser.getName(),receiverUser.getName());
+                System.out.printf("\tYou {%s} have already sent request to {%s}.%n",senderUser.getName(),receiverUser.getName());
             }
         } else {
-            System.out.println("User does not exist.");
+            System.out.println("\tUser does not exist.");
         }
     }
 
@@ -75,22 +86,24 @@ public class Network{
         if (user.getFriendRequests().contains(other)){ //check there is a req from the other user.
             user.getFriendRequests().remove(other);
             user.getFriends().add(other); // accept and remove the req
+            other.getFriends().add(user);
 
             friendships.putIfAbsent(user.getId(), new ArrayList<>());
             friendships.putIfAbsent(other.getId(), new ArrayList<>()); //add relations between these two users.
             friendships.get(user.getId()).add(other.getId());
             friendships.get(other.getId()).add(user.getId());
-            activities.add(new Activity(user.getId(), String.format("%s accepted the friend req.",other.getName())));
+
+            activities.add(new Activity(user.getId(), String.format("You and %s are friend now. ",other.getName())));
+            activities.add(new Activity(other.getId(), String.format("You and %s are friend now. ",user.getName())));
 
         } else{
-            System.out.printf("User {%s} cannot find in req list.%n",other.getName());
+            System.out.printf("\tUser {%s} cannot find in req list.%n",other.getName());
         }
-
     }
 
-    public void removeFriendFromFriendList(User user, User other){
+    public void removeFriend(User user, User other){
         if (!user.getFriends().contains(other)) { //check if it is not my friend.
-            System.out.printf("User %s is not your friend.%n",user.getName());
+            System.out.printf("\tUser %s is not your friend.%n",user.getName());
             return;
         }
 
@@ -99,18 +112,36 @@ public class Network{
 
         user.getFriends().remove(other); // delete oppositely from friend lists.
         other.getFriends().remove(user);
-        activities.add(new Activity(user.getId(), String.format("Removed %s from his/her friends.",other.getName())));
+
+        activities.add(new Activity(user.getId(), String.format("You and %s are not friend anymore.",other.getName())));
+        activities.add(new Activity(other.getId(), String.format("You and %s are not friend anymore.",user.getName())));
     }
 
-    public void removeFriendFromFriendRequestList(User user, User other){ //deny the request
-        user.getFriendRequests().remove(other); //not need to apply to graph because it did not assign a relation.
-        activities.add(new Activity(user.getId(), String.format("Deny the req. from %s.",other.getName())));
+    public void denyFriendRequest(User user, User other){ //deny the request
+        if (user.getFriendRequests().contains(other)) {
+            user.getFriendRequests().remove(other); //not need to apply to graph because it did not assign a relation.
+
+            activities.add(new Activity(user.getId(), String.format("You denied the friend request from %s.", other.getName())));
+            activities.add(new Activity(other.getId(), String.format("Your friend request to %s is denied.", user.getName())));
+        } else {
+            System.out.println("\tThere is no any request from this user.");
+        }
     }
 
-    public List<Integer> findMutualFriends(User user, User other){
+    public void findMutualFriends(User user, User other){
 
         List<Integer> mutualFriends = new ArrayList<>();
         boolean hasMutualFriends = false;
+
+        if (user == other){
+            System.out.println("\tDo not try to find a bug!");
+            return;
+        }
+
+        if (!user.getFriends().contains(other)){
+            System.out.println("\tThis user is not your friend!");
+            return;
+        }
 
         if (users.containsKey(user.getId()) && users.containsKey(other.getId())) {
 
@@ -121,15 +152,19 @@ public class Network{
                 }
             }
             if (!hasMutualFriends) {
-                System.out.println("These users have not any mutual friends.");
-                return null;
+                System.out.println("\tThese users have not any mutual friends.");
+                return;
             }
         } else {
-            System.out.println("User cannot find.");
+            System.out.println("\tUser cannot find.");
         }
-        activities.add(new Activity(user.getId(), String.format("Search for mutual friend with %s.", other.getName())));
 
-        return mutualFriends;
+        activities.add(new Activity(user.getId(), String.format("You searched for mutual friends between you and %s.", other.getName())));
+
+        for (int mutualId: mutualFriends){
+            System.out.printf("\tId: %d - Name: %s%n",mutualId,users.get(mutualId).getName());
+        }
+
     }
 
     public void suggestFriend(User user) {
@@ -141,11 +176,11 @@ public class Network{
         visited.add(user.getId());
         queue.add(user.getId());
 
-        System.out.printf("Searching for user: %s, id: %d.%n", user.getName(), user.getId());
+//        System.out.printf("Searching for user: %s, id: %d.%n", user.getName(), user.getId());
 
         while (!queue.isEmpty()) {
             int currentUserId = queue.poll();
-            System.out.println("Current user id: " + currentUserId);
+//            System.out.println("Current user id: " + currentUserId);
 
             for (int friend : friendships.get(currentUserId)) {
                 if (!visited.contains(friend)) {
@@ -159,7 +194,11 @@ public class Network{
             }
         }
 
-        System.out.println("Suggested friends: " + suggestedFriends);
+//        System.out.println("Suggested friends: " + suggestedFriends);
+
+        for (int userId: suggestedFriends){
+            System.out.printf("\tId: %d - Name: %s%n",userId,users.get(userId).getName());
+        }
     }
 
     public void sharePost(User user, String content){
@@ -167,9 +206,12 @@ public class Network{
         user.getPosts().add(post);
 
         newFeed.add(post);
-        activities.add(new Activity(user.getId(), "User shared a post."));
+        activities.add(new Activity(user.getId(), "You shared a post."));
+
+        System.out.printf("\tUser Id: %d %n\tContent: %s %n\tTime: %s%n",post.getUserId(),post.getContent(),post.getDateAsString());
     }
 
+    //test
     public void printFriendships() {
         for (int user : friendships.keySet()) {
             System.out.println(user + " -> " + friendships.get(user)); //print user and his/her friends.
@@ -177,25 +219,45 @@ public class Network{
     }
 
     public void getNewFeed() {
+        System.out.println();
         for (Post post: newFeed){
-            System.out.printf("%d - %s %s%n",post.getUserId(),post.getContent(),post.getDateAsString());
+            System.out.printf("\tUser Id: %d %n\tContent: %s %n\tTime: %s%n%n",post.getUserId(),post.getContent(),post.getDateAsString());
         }
     }
 
-    public void getActivities(){
-        for (Activity act: activities){
-            System.out.printf("%d - %s - %s%n",act.getUserId(),act.getDescription(),act.getDateAsString());
-        }
+    public PriorityQueue<Activity> getActivities(){
+//        for (Activity act: activities){
+//            System.out.printf("\t%d - %s - %s%n",act.getUserId(),act.getDescription(),act.getDateAsString());
+//        }
+
+        return activities;
     }
 
     // **** I will try to do it using binary search ****
     // searchById
-    public boolean searchByKey(int key) {
-        return users.containsKey(key);
+    public int searchById(int key) {
+        if (users.containsKey(key))
+            return key;
+        else{
+//            System.out.println("Nobody has this id.");
+            return -1;
+        }
     }
 
     // searchByName
-    public boolean searchByValue(String value) {
-        return users.containsValue(value);
+    public int searchByName(String name) {
+
+        for (Integer userId : users.keySet()) {
+            User user = users.get(userId);
+            if (user.getName().equalsIgnoreCase(name)) {
+                return userId;
+            }
+        }
+        return -1;
+    }
+
+
+    public Hashtable<Integer, User> getUsers() {
+        return users;
     }
 }

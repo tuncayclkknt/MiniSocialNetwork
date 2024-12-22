@@ -1,4 +1,5 @@
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class Post implements Comparable<Post>{
 
@@ -26,8 +27,8 @@ public class Post implements Comparable<Post>{
     }
 
     public String getDateAsString(){
-        return LocalDateTime.now().getHour() + "." + LocalDateTime.now().getMinute() + " " +
-                LocalDateTime.now().getDayOfMonth() + "/" + LocalDateTime.now().getMonthValue() + "/" + LocalDateTime.now().getYear();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH.mm dd/MM/yyyy");
+        return date.format(formatter);
     }
 
     @Override
