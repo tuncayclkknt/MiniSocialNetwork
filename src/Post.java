@@ -1,5 +1,3 @@
-import java.security.SecureRandom;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class Post implements Comparable<Post>{
@@ -15,7 +13,6 @@ public class Post implements Comparable<Post>{
     }
 
     //--------
-
     public String getContent() {
         return content;
     }

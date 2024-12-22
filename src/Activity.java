@@ -1,6 +1,7 @@
 import java.time.LocalDateTime;
 
 public class Activity implements Comparable<Activity> {
+
     private int userId;
     private LocalDateTime date;
     private String description;

@@ -89,6 +89,8 @@ public class Main {
 
 //        System.out.println(network.searchUser(1));
 //        System.out.println(network.searchUser("Zeynep"));
+        System.out.println("---------------");
+        network.suggestFriend(u3);
 
 
     }

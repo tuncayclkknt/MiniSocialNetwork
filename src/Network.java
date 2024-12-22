@@ -3,14 +3,17 @@ import java.util.*;
 public class Network{
 
     private Hashtable<Integer,String> users;
+
     private Hashtable<Integer, List<Integer>> friendships;
 
     private PriorityQueue<Post> newFeed;
+
     private PriorityQueue<Activity> activities;
 
     public Network() {
         this.users = new Hashtable<>();
         this.friendships = new Hashtable<>();
+
         this.newFeed = new PriorityQueue<>();
         this.activities = new PriorityQueue<>();
     }
@@ -105,10 +108,12 @@ public class Network{
     }
 
     public List<Integer> findMutualFriends(User user, User other){
+
         List<Integer> mutualFriends = new ArrayList<>();
         boolean hasMutualFriends = false;
 
         if (users.containsKey(user.getId()) && users.containsKey(other.getId())) {
+
             for (int i : friendships.get(user.getId())) {
                 if (friendships.get(other.getId()).contains(i)) {
                     mutualFriends.add(i);
@@ -127,6 +132,36 @@ public class Network{
         return mutualFriends;
     }
 
+    public void suggestFriend(User user) {
+        Set<Integer> visited = new HashSet<>();
+        Queue<Integer> queue = new LinkedList<>();
+
+        List<Integer> suggestedFriends = new ArrayList<>();
+
+        visited.add(user.getId());
+        queue.add(user.getId());
+
+        System.out.printf("Searching for user: %s, id: %d.%n", user.getName(), user.getId());
+
+        while (!queue.isEmpty()) {
+            int currentUserId = queue.poll();
+            System.out.println("Current user id: " + currentUserId);
+
+            for (int friend : friendships.get(currentUserId)) {
+                if (!visited.contains(friend)) {
+                    visited.add(friend);
+                    if (currentUserId != user.getId()) {
+                        suggestedFriends.add(friend);
+                    } else {
+                        queue.add(friend);
+                    }
+                }
+            }
+        }
+
+        System.out.println("Suggested friends: " + suggestedFriends);
+    }
+
     public void sharePost(User user, String content){
         Post post = new Post(user.getId(),content);
         user.getPosts().add(post);
@@ -135,26 +170,11 @@ public class Network{
         activities.add(new Activity(user.getId(), "User shared a post."));
     }
 
-//    public String searchUser(int userId){
-//        return users.get(binarySearch(userId));
-//    }
-//
-//    public int searchUser(String userName){
-//        return binarySearch(userName);
-//    }
-
-
     public void printFriendships() {
         for (int user : friendships.keySet()) {
             System.out.println(user + " -> " + friendships.get(user)); //print user and his/her friends.
         }
     }
-
-    //for testing
-//    public Hashtable<Integer, List<Integer>> getFriendships() {
-//        return friendships;
-//    }
-
 
     public void getNewFeed() {
         for (Post post: newFeed){
@@ -168,53 +188,14 @@ public class Network{
         }
     }
 
-//    public int binarySearch(int userId) {
-//        List<Integer> list = new ArrayList<>(users.keySet());
-//
-//        int left = 0;
-//        int right = list.size() - 1;
-//
-//        while (left <= right) {
-//            int mid = left + (right - left) / 2;
-//            int midValue = list.get(mid);
-//
-//            if (midValue == userId) {
-//                return mid;
-//            } else if (midValue < userId) {
-//                left = mid + 1;
-//            } else {
-//                right = mid - 1;
-//            }
-//        }
-//        return -1;
-//    }
+    // **** I will try to do it using binary search ****
+    // searchById
+    public boolean searchByKey(int key) {
+        return users.containsKey(key);
+    }
 
-//    public int binarySearch(String userName) {
-//        int userId = -1;
-//        for (int id: users.keySet()){
-//            if (Objects.equals(users.get(id), userName)){
-//                userId = id;
-//            }
-//        }
-//
-//        List<Integer> list = new ArrayList<>(users.keySet());
-//
-//        int left = 0;
-//        int right = list.size() - 1;
-//
-//        while (left <= right) {
-//            int mid = left + (right - left) / 2;
-//            int midValue = list.get(mid);
-//
-//            if (midValue == userId) {
-//                return mid;
-//            } else if (midValue < userId) {
-//                left = mid + 1;
-//            } else {
-//                right = mid - 1;
-//            }
-//        }
-//        return -1;
-//    }
-
+    // searchByName
+    public boolean searchByValue(String value) {
+        return users.containsValue(value);
+    }
 }
